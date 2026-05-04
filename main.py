@@ -79,7 +79,7 @@ def search_videos(query):
     Returns videos where the query word appears in the title or keywords.
     """
     if not query:
-        return VIDEOS  # return all if no query
+        return VIDEOS  
 
     query = query.lower()
     results = []
