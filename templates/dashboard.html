@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Sophisticated Spending{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">Welcome back, <strong>{{ username }}</strong>!</h5>
+    <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Logout</a>
+</div>
+
+<!-- Main Navigation Tabs -->
+<ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#money-manager" type="button">
+            💳 Money Manager
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#education" type="button">
+            📚 Education
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#assets" type="button">
+            📈 Assets
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content border border-top-0 rounded-bottom p-4 bg-white">
+
+    <!-- ================================================
+         MONEY MANAGER TAB
+         ================================================ -->
+    <div class="tab-pane fade show active" id="money-manager" role="tabpanel">
+
+        <!-- Row 1: Summary cards -->
+        <div class="row mb-4">
+
+            <!-- Total spent this month -->
+            <div class="col-md-5 mb-3 mb-md-0">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted">Total Spent This Month</h6>
+                        <h3 class="mb-3">£{{ "%.2f"|format(total_spent) }}</h3>
+
+                        {% if category_totals %}
+                            <table class="table table-sm mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Category</th>
+                                        <th class="text-end">Spent</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for cat, amt in category_totals.items() %}
+                                    <tr>
+                                        <td>{{ cat }}</td>
+                                        <td class="text-end">£{{ "%.2f"|format(amt) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p class="text-muted small mb-0">No transactions this month yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Budget goal -->
+            <div class="col-md-4 mb-3 mb-md-0">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted">Monthly Budget Goal</h6>
+
+                        {% if monthly_budget %}
+                            {% set pct = [(total_spent / monthly_budget * 100), 100] | min | int %}
+                            {% if pct >= 90 %}
+                                {% set bar_colour = 'bg-danger' %}
+                            {% elif pct >= 60 %}
+                                {% set bar_colour = 'bg-warning' %}
+                            {% else %}
+                                {% set bar_colour = 'bg-success' %}
+                            {% endif %}
+
+                            <p class="mb-1">£{{ "%.2f"|format(total_spent) }} of £{{ "%.2f"|format(monthly_budget) }}</p>
+                            <div class="progress mb-3" style="height: 22px;">
+                                <div class="progress-bar {{ bar_colour }}" style="width: {{ pct }}%;">
+                                    {{ pct }}%
+                                </div>
+                            </div>
+                        {% else %}
+                            <p class="text-muted small">No budget set yet.</p>
+                        {% endif %}
+
+                        <!-- Set / update budget form -->
+                        <form action="{{ url_for('set_budget') }}" method="POST" class="d-flex gap-2">
+                            <input type="number" step="0.01" min="1" name="monthly_budget"
+                                   class="form-control form-control-sm"
+                                   placeholder="e.g. 500"
+                                   value="{{ monthly_budget if monthly_budget else '' }}">
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Set</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Impulsive spending notice -->
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted">⚠️ Impulsive Spending</h6>
+                        {% if impulsive_ids %}
+                            <p class="small mb-0">
+                                {{ impulsive_ids | length }} transaction(s) flagged this week
+                                — rows highlighted in red below.
+                            </p>
+                        {% else %}
+                            <p class="small text-success mb-0">
+                                No impulsive patterns detected this week. 
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Row 2: Add transaction + transactions table -->
+        <div class="row">
+
+            <!-- Add Transaction form -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header"><strong>Add Transaction</strong></div>
+                    <div class="card-body">
+                        <form action="{{ url_for('add_transaction') }}" method="POST">
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <input type="text" class="form-control" name="description"
+                                       placeholder="e.g. Coffee at Pret" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Amount (£)</label>
+                                <input type="number" step="0.01" min="0.01" class="form-control"
+                                       name="amount" placeholder="0.00" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Category</label>
+                                <select class="form-select" name="category" required>
+                                    <option value="" disabled selected>Select category</option>
+                                    <option value="Food & Drink">Food & Drink</option>
+                                    <option value="Transport">Transport</option>
+                                    <option value="Shopping">Shopping</option>
+                                    <option value="Entertainment">Entertainment</option>
+                                    <option value="Bills">Bills</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Date</label>
+                                <input type="date" class="form-control" name="date" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Add Transaction</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions table -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <strong>Recent Transactions</strong>
+                        {% if impulsive_ids %}
+                            <small class="text-danger">🔴 = same category 3+ times this week</small>
+                        {% endif %}
+                    </div>
+                    <div class="card-body p-0">
+                        {% if transactions %}
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Description</th>
+                                        <th>Category</th>
+                                        <th class="text-end">Amount</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for t in transactions %}
+                                    <tr class="{{ 'table-danger' if t.id in impulsive_ids else '' }}">
+                                        <td>{{ t.date.strftime('%d %b %Y') }}</td>
+                                        <td>{{ t.description }}</td>
+                                        <td><span class="badge bg-secondary">{{ t.category }}</span></td>
+                                        <td class="text-end">£{{ "%.2f"|format(t.amount) }}</td>
+                                        <td class="text-end">
+                                            <!-- Delete button — uses a tiny form so it's a POST request -->
+                                            <form action="{{ url_for('delete_transaction', transaction_id=t.id) }}"
+                                                  method="POST"
+                                                  onsubmit="return confirm('Delete this transaction?');">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm">✕</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p class="text-muted text-center py-4 mb-0">
+                                No transactions yet — add your first one!
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ================================================
+         EDUCATION TAB
+         ================================================ -->
+    <div class="tab-pane fade" id="education" role="tabpanel">
+
+        <h5 class="mb-3">📚 Financial Education</h5>
+
+        <!-- Search bar — submits to the dashboard route with ?q=... -->
+        <form action="{{ url_for('dashboard') }}" method="GET" class="mb-4">
+            <!-- Keep the user on the education tab after search -->
+            <input type="hidden" name="tab" value="education">
+            <div class="input-group">
+                <input type="text" class="form-control" name="q"
+                       placeholder="Search videos e.g. budgeting, investing, saving..."
+                       value="{{ video_query }}">
+                <button class="btn btn-primary" type="submit">Search</button>
+                {% if video_query %}
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Clear</a>
+                {% endif %}
+            </div>
+        </form>
+
+        {% if video_query %}
+            <p class="text-muted">
+                {{ videos | length }} result(s) for "<strong>{{ video_query }}</strong>"
+            </p>
+        {% endif %}
+
+        <!-- Video cards -->
+        {% if videos %}
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+                {% for video in videos %}
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title">🎬 {{ video.title }}</h6>
+                            <p class="card-text text-muted small flex-grow-1">
+                                Keywords: {{ video.keywords }}
+                            </p>
+                            <a href="{{ video.url }}" target="_blank" class="btn btn-outline-primary btn-sm mt-2">
+                                Watch on YouTube →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-muted">No videos found for "{{ video_query }}" — try a different keyword.</p>
+        {% endif %}
+
+    </div>
+
+    <!-- ================================================
+         ASSETS TAB
+         ================================================ -->
+    <div class="tab-pane fade" id="assets" role="tabpanel">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <h4>📈 Asset Builder</h4>
+                <p class="text-muted">Explore stocks and investment opportunities — coming soon.</p>
+                <span class="badge bg-warning text-dark fs-6">Coming Soon</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- After a search, jump straight to the Education tab -->
+{% if video_query %}
+<script>
+    const educationTab = document.querySelector('[data-bs-target="#education"]');
+    if (educationTab) {
+        new bootstrap.Tab(educationTab).show();
+    }
+</script>
+{% endif %}
+
+{% endblock %}

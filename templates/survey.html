@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Quick Survey - Sophisticated Spending{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card">
+            <div class="card-header text-center">
+                <h4 class="mb-0">Let's make this better for you, {{ username }}!</h4>
+                <p class="text-muted mt-1 mb-0">3 quick questions — takes less than a minute</p>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('survey') }}" method="POST">
+
+                    <!-- Question 1 -->
+                    <div class="mb-4">
+                        <p class="fw-bold mb-2">1. What best describes you?</p>
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="radio" name="stakeholder_type" value="Student" id="s1" required>
+                            <label class="form-check-label" for="s1">Student / Young Person</label>
+                        </div>
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="radio" name="stakeholder_type" value="Professional" id="s2">
+                            <label class="form-check-label" for="s2">Working Professional</label>
+                        </div>
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="radio" name="stakeholder_type" value="Investor" id="s3">
+                            <label class="form-check-label" for="s3">Investor / Asset Builder</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="stakeholder_type" value="Other" id="s4">
+                            <label class="form-check-label" for="s4">Other</label>
+                        </div>
+                    </div>
+
+                    <!-- Question 2 -->
+                    <div class="mb-4">
+                        <p class="fw-bold mb-2">2. What is your main financial goal?</p>
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="radio" name="financial_goal" value="Save More" id="g1" required>
+                            <label class="form-check-label" for="g1">Save More Money</label>
+                        </div>
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="radio" name="financial_goal" value="Learn to Invest" id="g2">
+                            <label class="form-check-label" for="g2">Learn to Invest</label>
+                        </div>
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="radio" name="financial_goal" value="Track Spending" id="g3">
+                            <label class="form-check-label" for="g3">Track My Spending</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="financial_goal" value="Be Frugal" id="g4">
+                            <label class="form-check-label" for="g4">Be More Frugal</label>
+                        </div>
+                    </div>
+
+                    <!-- Question 3 -->
+                    <div class="mb-4">
+                        <p class="fw-bold mb-2">3. How often do you currently track your spending?</p>
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="radio" name="spending_frequency" value="Never" id="f1" required>
+                            <label class="form-check-label" for="f1">Never</label>
+                        </div>
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="radio" name="spending_frequency" value="Sometimes" id="f2">
+                            <label class="form-check-label" for="f2">Sometimes</label>
+                        </div>
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="radio" name="spending_frequency" value="Often" id="f3">
+                            <label class="form-check-label" for="f3">Often</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="spending_frequency" value="Always" id="f4">
+                            <label class="form-check-label" for="f4">Always</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Continue to Dashboard &rarr;</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
